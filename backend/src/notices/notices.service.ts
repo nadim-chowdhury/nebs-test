@@ -11,11 +11,34 @@ export class NoticesService {
   constructor(@Inject(DRIZZLE_ORM) private db: NodePgDatabase<typeof schema>) {}
 
   async create(createNoticeDto: CreateNoticeDto) {
+    const {
+      title,
+      content,
+      department,
+      status,
+      type,
+      targetType,
+      employeeId,
+      employeeName,
+      position,
+      attachmentUrl,
+      date,
+    } = createNoticeDto;
+
     const notice = await this.db
       .insert(schema.notices)
       .values({
-        ...createNoticeDto,
-        date: createNoticeDto.date ? new Date(createNoticeDto.date) : undefined,
+        title,
+        content,
+        department,
+        status: status || 'Draft',
+        type,
+        targetType,
+        employeeId,
+        employeeName,
+        position,
+        attachmentUrl,
+        date: date ? new Date(date) : null,
       })
       .returning();
     return notice[0];

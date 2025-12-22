@@ -6,6 +6,7 @@ import StoreProvider from "@/components/providers/store-provider";
 import Sidebar from "@/components/common/sidebar";
 import Navbar from "@/components/common/navbar";
 import CommonScrollArea from "@/components/common/common-scroll-area";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,6 +42,8 @@ export default function RootLayout({
                 <CommonScrollArea>{children}</CommonScrollArea>
               </div>
             </main>
+
+            <Toaster />
           </StoreProvider>
         </ThemeProvider>
       </body>
