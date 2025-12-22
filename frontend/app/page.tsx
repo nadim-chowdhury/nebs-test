@@ -25,7 +25,7 @@ export default function Home() {
   const [date, setDate] = React.useState<Date>();
 
   return (
-    <section className="flex flex-col gap-6 w-full p-4 px-6">
+    <section className="flex flex-col gap-6">
       {/* Header Section */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-1">

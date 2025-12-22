@@ -5,5 +5,9 @@ export default function CommonScrollArea({
 }: {
   children: React.ReactNode;
 }) {
-  return <ScrollArea className="h-[calc(100vh-80px)]">{children}</ScrollArea>;
+  return (
+    <ScrollArea className="h-[calc(100vh-80px)] w-full p-4 px-6 bg-slate-50">
+      {children}
+    </ScrollArea>
+  );
 }
