@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import StoreProvider from "@/components/providers/store-provider";
 import Sidebar from "@/components/common/sidebar";
 import Navbar from "@/components/common/navbar";
+import CommonScrollArea from "@/components/common/common-scroll-area";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,7 +36,9 @@ export default function RootLayout({
               <Sidebar />
 
               <div className="flex-1 flex-col min-h-screen">
-                <Navbar /> {children}
+                <Navbar />
+
+                <CommonScrollArea>{children}</CommonScrollArea>
               </div>
             </main>
           </StoreProvider>

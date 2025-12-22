@@ -19,12 +19,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import NoticeTable from "@/components/dashboard/notice-table";
 
 export default function Home() {
   const [date, setDate] = React.useState<Date>();
 
   return (
-    <section className="flex flex-col gap-6 w-full p-4 px-6 bg-background">
+    <section className="flex flex-col gap-6 w-full p-4 px-6">
       {/* Header Section */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-1">
@@ -55,7 +56,7 @@ export default function Home() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-end gap-4">
+      <div className="flex flex-wrap items-center justify-end gap-4 mb-2">
         <span className="text-sm font-medium text-slate-600 mr-2">
           Filter by:
         </span>
@@ -122,6 +123,8 @@ export default function Home() {
           Reset Filters
         </Button>
       </div>
+
+      <NoticeTable />
     </section>
   );
 }
