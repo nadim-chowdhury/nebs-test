@@ -22,8 +22,26 @@ import { Input } from "@/components/ui/input";
 import NoticeTable from "@/components/dashboard/notice-table";
 import Link from "next/link";
 
+import { useGetNoticesQuery } from "@/store/services/noticeService";
+import CustomLoader from "@/components/common/custom-loader";
+
 export default function Home() {
   const [date, setDate] = React.useState<Date>();
+  const { data: notices = [], isLoading } = useGetNoticesQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+  console.log("🚀 ~ notices:", notices);
+
+  if (isLoading) return <CustomLoader />;
+
+  // Calculate active and draft counts
+  // Assuming 'Published' status counts as Active and 'Draft' as Draft
+  const activeNoticesCount = notices?.data
+    ? notices?.data?.filter((n: any) => n.status === "Published").length
+    : 0;
+  const draftNoticesCount = notices?.data
+    ? notices?.data?.filter((n: any) => n.status === "Draft").length
+    : 0;
 
   return (
     <section className="flex flex-col gap-6">
@@ -35,10 +53,15 @@ export default function Home() {
           </h1>
           <div className="flex items-center gap-2 text-sm">
             <span className="text-emerald-500 font-medium">
-              Active Notices: 8
+              Active Notices: {activeNoticesCount}
             </span>
             <span className="text-slate-300">|</span>
-            <span className="text-amber-500 font-medium">Draft Notice: 04</span>
+            <span className="text-amber-500 font-medium">
+              Draft Notice:{" "}
+              {draftNoticesCount < 10
+                ? `${draftNoticesCount}`
+                : draftNoticesCount}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -127,7 +150,7 @@ export default function Home() {
         </Button>
       </div>
 
-      <NoticeTable />
+      <NoticeTable notices={notices?.data} />
     </section>
   );
 }

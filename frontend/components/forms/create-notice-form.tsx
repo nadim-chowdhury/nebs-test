@@ -3,6 +3,8 @@
 import * as React from "react";
 import { CalendarIcon, CloudUpload, Paperclip, X } from "lucide-react";
 import { format } from "date-fns";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import CustomLoader from "../common/custom-loader";
+import { ResponseModal } from "../ui/response-modal";
 
 const noticeTypeOptions = [
   { value: "warning", label: "Warning / Disciplinary" },
@@ -40,46 +43,94 @@ const noticeTypeOptions = [
   { value: "advisory", label: "Advisory / Personal Reminder" },
 ];
 
+// 1. Define Zod Schema
+const formSchema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    department: z.string().min(1, "Target is required"),
+    employeeId: z.string().optional(),
+    employeeName: z.string().optional(),
+    position: z.string().optional(),
+    type: z.array(z.string()).min(1, "Select at least one notice type"),
+    date: z.date({
+      message: "Publish date is required",
+    }),
+    content: z.string().optional(),
+    status: z.enum(["Published", "Draft"]),
+  })
+  .superRefine((data, ctx) => {
+    // 2. Conditional Validation for Individual Target
+    if (data.department === "individual") {
+      if (!data.employeeId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Employee ID is required",
+          path: ["employeeId"],
+        });
+      }
+      if (!data.employeeName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Employee Name is required",
+          path: ["employeeName"],
+        });
+      }
+      if (!data.position) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Position is required",
+          path: ["position"],
+        });
+      }
+    }
+  });
+
+type FormValues = z.infer<typeof formSchema>;
+
 export default function CreateNoticeForm() {
-  const [date, setDate] = React.useState<Date>();
-  const [selectedNoticeTypes, setSelectedNoticeTypes] = React.useState<
-    string[]
-  >([]);
+  const [open, setOpen] = React.useState(false);
 
   const router = useRouter();
   const [createNotice, { isLoading }] = useCreateNoticeMutation();
 
-  const { control, handleSubmit, watch, setValue, reset } = useForm({
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors }, // Get errors from form state
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema), // Integrate Zod Resolver
     defaultValues: {
       title: "",
       department: "individual",
       employeeId: "",
       employeeName: "",
       position: "",
-      type: [] as string[],
-      date: undefined as Date | undefined,
+      type: [],
       content: "",
-      status: "Published", // Default status
+      status: "Published",
     },
   });
 
   const departmentValue = watch("department");
 
-  const onSubmit = async (data: any, status: "Published" | "Draft") => {
+  const onSubmit = async (data: FormValues, status: "Published" | "Draft") => {
     try {
       // 1. Derive targetType
       let targetType = "department";
       if (data.department === "individual") targetType = "individual";
       if (data.department === "all") targetType = "all";
+
       // 2. Construct Payload
       const payload = {
         title: data.title,
-        content: data.content,
+        content: data.content || "",
         department: data.department,
         targetType,
-        status, // 'Published' or 'Draft'
-        type: data.type.join(", "), // Convert array to string
-        date: data.date ? data.date.toISOString() : undefined,
+        status,
+        type: data.type.join(", "),
+        date: data.date.toISOString(),
         // Only include employee fields if target is individual
         ...(targetType === "individual" && {
           employeeId: data.employeeId,
@@ -87,6 +138,7 @@ export default function CreateNoticeForm() {
           position: data.position,
         }),
       };
+
       // 3. Call API
       await createNotice(payload).unwrap();
       toast.success(
@@ -94,9 +146,9 @@ export default function CreateNoticeForm() {
           status === "Draft" ? "saved as draft" : "published"
         } successfully!`
       );
-      router.push("/");
-      router.refresh();
+
       reset();
+      setOpen(true);
     } catch (error) {
       console.error("Failed to create notice:", error);
       toast.error("Something went wrong. Please try again.");
@@ -128,7 +180,12 @@ export default function CreateNoticeForm() {
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <SelectTrigger className="bg-slate-50 border-slate-200 !h-11 w-full">
+                  <SelectTrigger
+                    className={cn(
+                      "bg-slate-50 border-slate-200 !h-11 w-full",
+                      errors.department && "border-red-500 focus:ring-red-500"
+                    )}
+                  >
                     <SelectValue placeholder="Select target" />
                   </SelectTrigger>
                   <SelectContent>
@@ -140,6 +197,11 @@ export default function CreateNoticeForm() {
                 </Select>
               )}
             />
+            {errors.department && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.department.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -156,10 +218,16 @@ export default function CreateNoticeForm() {
               <Input
                 {...field}
                 placeholder="Write the Title of Notice"
-                className="h-11 border-slate-200"
+                className={cn(
+                  "h-11 border-slate-200",
+                  errors.title && "border-red-500 focus-visible:ring-red-500"
+                )}
               />
             )}
           />
+          {errors.title && (
+            <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>
+          )}
         </div>
 
         {/* Employee Details Row */}
@@ -178,16 +246,31 @@ export default function CreateNoticeForm() {
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
-                    <SelectTrigger className="!h-11 w-full border-slate-200 text-slate-500">
+                    <SelectTrigger
+                      className={cn(
+                        "!h-11 w-full",
+                        errors.employeeId && "!border-red-500"
+                      )}
+                    >
                       <SelectValue placeholder="Select ID" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="emp-001">EMP-001</SelectItem>
                       <SelectItem value="emp-002">EMP-002</SelectItem>
+                      <SelectItem value="emp-003">EMP-003</SelectItem>
+                      <SelectItem value="emp-004">EMP-004</SelectItem>
+                      <SelectItem value="emp-005">EMP-005</SelectItem>
+                      <SelectItem value="emp-006">EMP-006</SelectItem>
+                      <SelectItem value="emp-007">EMP-007</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
               />
+              {errors.employeeId && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.employeeId.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700">
@@ -201,10 +284,19 @@ export default function CreateNoticeForm() {
                   <Input
                     {...field}
                     placeholder="Enter employee full name"
-                    className="h-11 border-slate-200"
+                    className={cn(
+                      "h-11 border-slate-200",
+                      errors.employeeName &&
+                        "!border-red-500 focus-visible:ring-red-500"
+                    )}
                   />
                 )}
               />
+              {errors.employeeName && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.employeeName.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700">
@@ -218,10 +310,19 @@ export default function CreateNoticeForm() {
                   <Input
                     {...field}
                     placeholder="Select employee department"
-                    className="h-11 border-slate-200"
+                    className={cn(
+                      "h-11 border-slate-200",
+                      errors.position &&
+                        "!border-red-500 focus-visible:ring-red-500"
+                    )}
                   />
                 )}
               />
+              {errors.position && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.position.message}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -242,10 +343,16 @@ export default function CreateNoticeForm() {
                   selected={field.value}
                   onChange={field.onChange}
                   placeholder="Select Notice Type"
-                  className="h-11 border-slate-200"
+                  className={cn(
+                    "h-11",
+                    errors.type && "border-red-500 focus:ring-red-500"
+                  )}
                 />
               )}
             />
+            {errors.type && (
+              <p className="text-red-500 text-xs mt-1">{errors.type.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label className="text-slate-700">
@@ -262,7 +369,8 @@ export default function CreateNoticeForm() {
                       variant={"outline"}
                       className={cn(
                         "w-full h-11 justify-between text-left font-normal border-slate-200",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground",
+                        errors.date && "border-red-500 text-red-500"
                       )}
                     >
                       {field.value
@@ -277,11 +385,15 @@ export default function CreateNoticeForm() {
                       selected={field.value}
                       onSelect={field.onChange}
                       initialFocus
+                      disabled={(date) => date < new Date("1900-01-01")}
                     />
                   </PopoverContent>
                 </Popover>
               )}
             />
+            {errors.date && (
+              <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>
+            )}
           </div>
         </div>
 
@@ -365,6 +477,13 @@ export default function CreateNoticeForm() {
           </Button>
         </div>
       </div>
+
+      {/* <ResponseModal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Notice"
+        description="Notice created successfully"
+      /> */}
     </div>
   );
 }

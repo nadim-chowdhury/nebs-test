@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { MoreVertical, Eye, Pencil } from "lucide-react";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,9 +30,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { noticesData } from "@/utils/notices-data";
+// Define the Notice Interface
+interface Notice {
+  id: string;
+  title: string;
+  type: string;
+  department: string;
+  date: string;
+  // Make status optional or handle potential differences if backend returns slightly different strings
+  status: "Published" | "Draft" | "Unpublished" | string;
+}
 
-export default function NoticeTable() {
+interface NoticeTableProps {
+  notices: Notice[];
+}
+
+export default function NoticeTable({ notices }: NoticeTableProps) {
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-white overflow-hidden">
@@ -52,94 +66,102 @@ export default function NoticeTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {noticesData.map((notice) => (
-              <TableRow key={notice.id} className="hover:bg-slate-50/50 h-16">
-                <TableCell className="text-center px-4">
-                  <Checkbox className="w-5 h-5" />
-                </TableCell>
-                <TableCell className="font-medium text-slate-700 px-4">
-                  {notice.title}
-                </TableCell>
-                <TableCell className="text-slate-600 px-4">
-                  {notice.type}
-                </TableCell>
-                <TableCell className="px-4">
-                  <span
-                    className={
-                      notice.department === "All Department"
-                        ? "text-indigo-500"
-                        : notice.department === "Finance"
-                        ? "text-emerald-500"
-                        : notice.department === "Sales Team"
-                        ? "text-amber-500"
-                        : notice.department === "Web Team"
-                        ? "text-blue-500"
-                        : notice.department === "HR"
-                        ? "text-rose-500"
-                        : "text-slate-600"
-                    }
-                  >
-                    {notice.department}
-                  </span>
-                </TableCell>
-                <TableCell className="text-slate-500 px-4">
-                  {notice.date}
-                </TableCell>
-                <TableCell className="px-4">
-                  <Badge
-                    variant="default"
-                    className={`rounded ${
-                      notice.status === "Published"
-                        ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                        : notice.status === "Unpublished"
-                        ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        : "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                    }`}
-                  >
-                    {notice.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right px-4">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-500"
+            {notices && notices.length > 0 ? (
+              notices.map((notice) => (
+                <TableRow key={notice.id} className="hover:bg-slate-50/50 h-16">
+                  <TableCell className="text-center px-4">
+                    <Checkbox className="w-5 h-5" />
+                  </TableCell>
+                  <TableCell className="font-medium text-slate-700 px-4">
+                    {notice.title}
+                  </TableCell>
+                  <TableCell className="text-slate-600 px-4">
+                    {notice.type}
+                  </TableCell>
+                  <TableCell className="px-4">
+                    <span
+                      className={
+                        notice.department === "All Department"
+                          ? "text-indigo-500"
+                          : notice.department === "Finance"
+                          ? "text-emerald-500"
+                          : notice.department === "Sales Team"
+                          ? "text-amber-500"
+                          : notice.department === "Web Team"
+                          ? "text-blue-500"
+                          : notice.department === "HR"
+                          ? "text-rose-500"
+                          : "text-slate-600"
+                      }
                     >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-500"
+                      {notice.department}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-slate-500 px-4">
+                    {format(new Date(notice.date), "dd-MMM-yyyy")}
+                  </TableCell>
+                  <TableCell className="px-4">
+                    <Badge
+                      variant="default"
+                      className={`rounded ${
+                        notice.status === "Published"
+                          ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                          : notice.status === "Unpublished"
+                          ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          : "bg-amber-50 text-amber-600 hover:bg-amber-100"
+                      }`}
                     >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-slate-500"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="justify-between">
-                          Published
-                          <Switch checked={notice.status === "Published"} />
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                      {notice.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right px-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-500"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-500"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-500"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="justify-between">
+                            Published
+                            <Switch checked={notice.status === "Published"} />
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>View Details</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  No notices found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
