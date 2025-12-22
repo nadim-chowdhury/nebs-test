@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import NoticeTable from "@/components/dashboard/notice-table";
+import Link from "next/link";
 
 export default function Home() {
   const [date, setDate] = React.useState<Date>();
@@ -41,10 +42,12 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white gap-2 shadow-sm">
-            <Plus className="h-4 w-4" />
-            Create Notice
-          </Button>
+          <Link href="/create-notice">
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white gap-2 shadow-sm">
+              <Plus className="h-4 w-4" />
+              Create Notice
+            </Button>
+          </Link>
           <Button
             variant="outline"
             className="border-orange-200 text-orange-500 hover:bg-orange-50 hover:text-orange-600 gap-2 bg-white"
