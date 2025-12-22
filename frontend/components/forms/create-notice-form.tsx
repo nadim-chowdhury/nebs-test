@@ -23,9 +23,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Check } from "lucide-react";
+import { MultiSelect } from "@/components/ui/multi-select";
+
+const noticeTypeOptions = [
+  { value: "warning", label: "Warning / Disciplinary" },
+  { value: "performance", label: "Performance Improvement" },
+  { value: "appreciation", label: "Appreciation / Recognition" },
+  { value: "attendance", label: "Attendance / Leave Issue" },
+  { value: "payroll", label: "Payroll / Compensation" },
+  { value: "contract", label: "Contract / Role Update" },
+  { value: "advisory", label: "Advisory / Personal Reminder" },
+];
 
 export default function CreateNoticeForm() {
   const [date, setDate] = React.useState<Date>();
+  const [selectedNoticeTypes, setSelectedNoticeTypes] = React.useState<
+    string[]
+  >([]);
 
   return (
     <div className="w-full bg-white rounded-lg border shadow-sm space-y-8">
@@ -118,16 +132,13 @@ export default function CreateNoticeForm() {
               <span className="text-red-500 mr-1">*</span>
               Notice Type
             </Label>
-            <Select>
-              <SelectTrigger className="!h-11 w-full border-slate-200 text-slate-500">
-                <SelectValue placeholder="Select Notice Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="general">General</SelectItem>
-                <SelectItem value="holiday">Holiday</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-              </SelectContent>
-            </Select>
+            <MultiSelect
+              options={noticeTypeOptions}
+              selected={selectedNoticeTypes}
+              onChange={setSelectedNoticeTypes}
+              placeholder="Select Notice Type"
+              className="h-11 border-slate-200"
+            />
           </div>
 
           <div className="space-y-2">
@@ -175,7 +186,7 @@ export default function CreateNoticeForm() {
             Upload Attachments (optional)
           </Label>
 
-          <div className="border-2 border-dashed border-emerald-400 bg-emerald-50/10 rounded-lg p-8 text-center hover:bg-emerald-50/30 transition-colors cursor-pointer">
+          <div className="border border-dashed border-emerald-400 bg-emerald-50/10 rounded-lg p-8 text-center hover:bg-emerald-50/30 transition-colors cursor-pointer">
             <div className="flex flex-col items-center justify-center gap-2">
               <CloudUpload className="h-10 w-10 text-emerald-500" />
               <div className="text-sm text-slate-600">

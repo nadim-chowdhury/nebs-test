@@ -87,14 +87,14 @@ export default function NoticeTable() {
                 </TableCell>
                 <TableCell className="px-4">
                   <Badge
-                    variant="secondary"
-                    className={
+                    variant="default"
+                    className={`rounded ${
                       notice.status === "Published"
                         ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                         : notice.status === "Unpublished"
                         ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
                         : "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                    }
+                    }`}
                   >
                     {notice.status}
                   </Badge>
