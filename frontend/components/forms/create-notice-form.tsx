@@ -115,6 +115,12 @@ export default function CreateNoticeForm() {
 
   const departmentValue = watch("department");
 
+  // State to store created notice details for the modal
+  const [createdNotice, setCreatedNotice] = React.useState<{
+    id: string | number;
+    title: string;
+  } | null>(null);
+
   const onSubmit = async (data: FormValues, status: "Published" | "Draft") => {
     try {
       // 1. Derive targetType
@@ -140,15 +146,13 @@ export default function CreateNoticeForm() {
       };
 
       // 3. Call API
-      await createNotice(payload).unwrap();
-      toast.success(
-        `Notice ${
-          status === "Draft" ? "saved as draft" : "published"
-        } successfully!`
-      );
+      const result = await createNotice(payload).unwrap();
 
-      reset();
+      // Store result for modal
+      setCreatedNotice({ id: result.id, title: data.title });
+
       setOpen(true);
+      reset(); // Reset form in background
     } catch (error) {
       console.error("Failed to create notice:", error);
       toast.error("Something went wrong. Please try again.");
@@ -480,9 +484,29 @@ export default function CreateNoticeForm() {
 
       <ResponseModal
         open={open}
+        onOpenChange={setOpen}
         onClose={() => setOpen(false)}
-        title="Notice"
-        description="Notice created successfully"
+        title="Notice Published Successfully"
+        description={
+          <span>
+            Your notice “
+            <span className="font-semibold text-slate-800">
+              {createdNotice?.title || "Untitled"}
+            </span>
+            ” has been published and is now visible to all selected departments.
+          </span>
+        }
+        primaryActionLabel="View Notice"
+        onPrimaryAction={() => {
+          // Ideally navigate to details, but for now just go list
+          router.push("/");
+        }}
+        secondaryActionLabel="Create Another"
+        onSecondaryAction={() => {
+          setOpen(false);
+          // Form is already reset in onSubmit
+        }}
+        closeLabel="Close"
       />
     </div>
   );

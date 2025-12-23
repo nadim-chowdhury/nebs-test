@@ -145,7 +145,7 @@ export function ResponseModal({
             <DialogTitle className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">
               {title}
             </DialogTitle>
-            <DialogDescription className="text-base md:text-lg text-slate-600 max-w-[400px] leading-relaxed">
+            <DialogDescription className="text-base text-center md:text-lg text-slate-600 leading-relaxed">
               {description}
             </DialogDescription>
           </DialogHeader>
