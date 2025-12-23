@@ -1,69 +1,74 @@
-# NEBS Test Project
+# Notice Management System
 
-This is a full-stack web application for managing notices, built with a modern tech stack.
+A full-stack web application designed for corporate notice management, featuring role-based targeting, real-time status updates, and a responsive modern UI.
 
-## Tech Stack
+## 🚀 Live Demo
 
-- **Frontend:** Next.js 16 (React 19), TailwindCSS, Shadcn/UI, Redux Toolkit
-- **Backend:** NestJS, Drizzle ORM
+- **Frontend:** [Link to Vercel/Render Deployment]
+- **Backend API:** [Link to Backend Deployment]
+- **Swagger Docs:** [Link to Backend Deployment]/api/docs
+
+## 🛠️ Tech Stack
+
+**Frontend:**
+
+- **Framework:** Next.js 16 (React 19)
+- **Styling:** TailwindCSS, Shadcn/UI
+- **State Management:** Redux Toolkit / RTK Query
+- **Validation:** Zod + React Hook Form
+
+**Backend:**
+
+- **Framework:** NestJS
 - **Database:** PostgreSQL
+- **ORM:** Drizzle ORM
+- **Documentation:** Swagger UI
 
-## Features
+## ✨ Key Features
 
-- **Notice Management:** Create, Read, Update, and Delete notices.
-- **Dynamic Filtering:** Filter by Department, Status (Draft/Published), and Search by Title/Employee.
-- **Pagination:** Efficient server-side pagination.
-- **Status Toggling:** Quickly publish or unpublish notices.
+- **Create Notices:** Rich text support with validation.
+- **Dynamic Targeting:** Target specific Departments or Individuals.
+- **Advanced Filtering:** Filter by Status (Draft/Published), Department, or Search by Title/Name.
+- **Pagination:** Server-side pagination for optimized performance.
+- **Status Management:** One-click toggle to publish/unpublish notices.
 
-## Setup & Running
+## ⚙️ Installation & Setup
 
-### Option 1: Docker (Recommended)
+1. **Clone the repository:**
 
-1.  Ensure you have Docker and Docker Compose installed.
-2.  Run the application:
-    ```bash
-    docker-compose up --build
-    ```
-3.  Access the application:
-    - **Frontend:** `http://localhost:3000`
-    - **Backend API:** `http://localhost:4000`
-    - **Swagger Docs:** `http://localhost:4000/api` (if enabled)
+   ```bash
+   git clone <repository-url>
+   cd nebs-test
+   ```
 
-### Option 2: Manual Setup
+2. **Environment Setup:**
+   Create a `.env` file in `backend/` and `.env.local` in `frontend/`. See `.env.example` for reference.
 
-#### Prerequisites
+   **Backend (.env):**
 
-- Node.js (v18+)
-- PostgreSQL Database
+   ```env
+   DATABASE_URL="postgresql://user:password@host:port/database"
+   PORT=4000
+   ```
 
-#### Backend
+   **Frontend (.env.local):**
 
-1.  Navigate to `backend/`:
-    ```bash
-    cd backend
-    npm install
-    ```
-2.  Configure `.env` file (copy from example if available, or set `DATABASE_URL`).
-3.  Run migrations (if applicable) and start server:
-    ```bash
-    npm run db:push
-    npm run start:dev
-    ```
+   ```env
+   NEXT_PUBLIC_API_URL="http://localhost:4000/api"
+   ```
 
-#### Frontend
+3. **Run with Docker (Recommended):**
 
-1.  Navigate to `frontend/`:
-    ```bash
-    cd frontend
-    npm install
-    ```
-2.  Start development server:
-    ```bash
-    npm run dev
-    ```
+   ```bash
+   docker-compose up --build
+   ```
 
-## Project Structure
+4. **Manual Run:**
+   - **Backend:** `cd backend && npm install && npm run start:dev`
+   - **Frontend:** `cd frontend && npm install && npm run dev`
 
-- `/frontend`: Next.js application source code.
-- `/backend`: NestJS API source code.
-- `docker-compose.yml`: Orchestration for app and database services.
+## 📧 Contact & Submission
+
+**Submitted by:** [Your Name]
+**Email:** mrnad@example.com
+**Repository:** [GitHub Link]
