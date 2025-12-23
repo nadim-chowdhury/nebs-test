@@ -59,13 +59,6 @@ export default function Home() {
   const notices = data?.data?.data || [];
   const pagination = data?.data?.meta || { total: 0, page: 1, lastPage: 1 };
 
-  // Calculate active and draft counts (This might need backend support for accurate total counts across pages)
-  // For now, we rely on what the backend might return or just remove this if backend doesn't provide global counts separately.
-  // Alternatively, we can make separate queries for counts, but for now let's keep it simple or hide if data is paginated.
-  // We will pass 0 for now as we don't have global counts from the paginated API yet without extra endpoints.
-  const activeNoticesCount = 0;
-  const draftNoticesCount = 0;
-
   if (isLoading) return <CustomLoader />;
 
   return (
@@ -189,7 +182,7 @@ export default function Home() {
       </div>
 
       <NoticeTable
-        notices={notices?.data || []}
+        notices={notices || []}
         pagination={pagination}
         onPageChange={setPage}
       />
