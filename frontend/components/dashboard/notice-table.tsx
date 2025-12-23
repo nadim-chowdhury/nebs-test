@@ -31,7 +31,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { useUpdateNoticeMutation } from "@/store/services/noticeService";
+import {
+  useUpdateNoticeMutation,
+  useDeleteNoticeMutation,
+} from "@/store/services/noticeService";
+import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
 
 // Define the Notice Interface
 interface Notice {
@@ -61,6 +76,9 @@ export default function NoticeTable({
   onPageChange,
 }: NoticeTableProps) {
   const [updateNotice] = useUpdateNoticeMutation();
+  const [deleteNotice, { isLoading: isDeleting }] = useDeleteNoticeMutation();
+  const [deleteId, setDeleteId] = React.useState<string | null>(null);
+  const router = useRouter();
 
   const handleStatusToggle = async (id: string, currentStatus: string) => {
     try {
@@ -71,6 +89,18 @@ export default function NoticeTable({
     } catch (error) {
       console.error("Failed to update status:", error);
       toast.error("Failed to update status");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteNotice(deleteId).unwrap();
+      toast.success("Notice deleted successfully");
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Failed to delete notice:", error);
+      toast.error("Failed to delete notice");
     }
   };
 
@@ -148,8 +178,11 @@ export default function NoticeTable({
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-slate-500"
+                        asChild
                       >
-                        <Eye className="h-4 w-4" />
+                        <Link href={`/notices/${notice.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </Button>
                       <Button
                         variant="ghost"
@@ -181,8 +214,18 @@ export default function NoticeTable({
                               }
                             />
                           </DropdownMenuItem>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/notices/${notice.id}`}
+                              className="w-full cursor-pointer"
+                            >
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50"
+                            onSelect={() => setDeleteId(notice.id)}
+                          >
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -204,6 +247,31 @@ export default function NoticeTable({
       {pagination && pagination.total > 0 && (
         <NoticePagination pagination={pagination} onPageChange={onPageChange} />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              notice and remove it from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Deleting..." : "Delete Notice"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
