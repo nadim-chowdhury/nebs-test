@@ -50,7 +50,7 @@ import { useRouter } from "next/navigation";
 
 // Define the Notice Interface
 interface Notice {
-  id: string;
+  id: number;
   title: string;
   type: string;
   department: string;
@@ -68,27 +68,29 @@ interface NoticeTableProps {
   notices: Notice[];
   pagination: PaginationMeta;
   onPageChange: (page: number) => void;
+  isLoading?: boolean;
 }
 
 export default function NoticeTable({
   notices,
   pagination,
   onPageChange,
+  isLoading,
 }: NoticeTableProps) {
   const [updateNotice] = useUpdateNoticeMutation();
   const [deleteNotice, { isLoading: isDeleting }] = useDeleteNoticeMutation();
-  const [deleteId, setDeleteId] = React.useState<string | null>(null);
-  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
+  const [deleteId, setDeleteId] = React.useState<number | null>(null);
+  const [selectedRows, setSelectedRows] = React.useState<Set<number>>(
     new Set()
   );
   const router = useRouter();
 
-  // Reset selection when notices change (e.g. pagination)
+  // Reset selection when page changes
   React.useEffect(() => {
     setSelectedRows(new Set());
-  }, [notices]);
+  }, [pagination.page]);
 
-  const handleStatusToggle = async (id: string, currentStatus: string) => {
+  const handleStatusToggle = async (id: number, currentStatus: string) => {
     try {
       const newStatus =
         currentStatus === "Published" ? "Unpublished" : "Published";
@@ -124,7 +126,7 @@ export default function NoticeTable({
     }
   };
 
-  const toggleSelectRow = (id: string) => {
+  const toggleSelectRow = (id: number) => {
     const newSelected = new Set(selectedRows);
     if (newSelected.has(id)) {
       newSelected.delete(id);
@@ -158,7 +160,16 @@ export default function NoticeTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {notices && notices.length > 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  <div className="flex items-center justify-center gap-2 text-slate-500">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Loading notices...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : notices && notices.length > 0 ? (
               notices.map((notice) => (
                 <TableRow key={notice.id} className="hover:bg-slate-50/50 h-16">
                   <TableCell className="text-center px-4">

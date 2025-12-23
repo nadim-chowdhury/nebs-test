@@ -42,7 +42,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading } = useGetNoticesQuery(
+  const { data, isLoading, isFetching } = useGetNoticesQuery(
     {
       page,
       limit: 10,
@@ -185,6 +185,7 @@ export default function Home() {
         notices={notices || []}
         pagination={pagination}
         onPageChange={setPage}
+        isLoading={isFetching}
       />
     </section>
   );
