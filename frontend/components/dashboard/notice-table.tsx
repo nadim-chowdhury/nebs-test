@@ -78,7 +78,15 @@ export default function NoticeTable({
   const [updateNotice] = useUpdateNoticeMutation();
   const [deleteNotice, { isLoading: isDeleting }] = useDeleteNoticeMutation();
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
+  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
+    new Set()
+  );
   const router = useRouter();
+
+  // Reset selection when notices change (e.g. pagination)
+  React.useEffect(() => {
+    setSelectedRows(new Set());
+  }, [notices]);
 
   const handleStatusToggle = async (id: string, currentStatus: string) => {
     try {
@@ -104,6 +112,28 @@ export default function NoticeTable({
     }
   };
 
+  const isAllSelected =
+    notices.length > 0 && notices.every((n) => selectedRows.has(n.id));
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedRows(new Set());
+    } else {
+      const newSelected = new Set(notices.map((n) => n.id));
+      setSelectedRows(newSelected);
+    }
+  };
+
+  const toggleSelectRow = (id: string) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedRows(newSelected);
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-white overflow-hidden">
@@ -111,7 +141,11 @@ export default function NoticeTable({
           <TableHeader className="bg-slate-50 h-14">
             <TableRow>
               <TableHead className="w-[50px] text-center px-4">
-                <Checkbox className="w-5 h-5" />
+                <Checkbox
+                  className="w-5 h-5"
+                  checked={isAllSelected}
+                  onCheckedChange={toggleSelectAll}
+                />
               </TableHead>
               <TableHead className="min-w-[200px] px-4">Title</TableHead>
               <TableHead className="min-w-[150px] px-4">Notice Type</TableHead>
@@ -128,15 +162,19 @@ export default function NoticeTable({
               notices.map((notice) => (
                 <TableRow key={notice.id} className="hover:bg-slate-50/50 h-16">
                   <TableCell className="text-center px-4">
-                    <Checkbox className="w-5 h-5" />
+                    <Checkbox
+                      className="w-5 h-5"
+                      checked={selectedRows.has(notice.id)}
+                      onCheckedChange={() => toggleSelectRow(notice.id)}
+                    />
                   </TableCell>
                   <TableCell className="font-medium text-slate-700 px-4">
                     {notice.title}
                   </TableCell>
-                  <TableCell className="text-slate-600 px-4">
+                  <TableCell className="text-slate-600 px-4 capitalize">
                     {notice.type}
                   </TableCell>
-                  <TableCell className="px-4">
+                  <TableCell className="px-4 capitalize">
                     <span
                       className={
                         notice.department === "All Department"
@@ -244,7 +282,7 @@ export default function NoticeTable({
           </TableBody>
         </Table>
       </div>
-      {pagination && pagination.total > 0 && (
+      {pagination && pagination.lastPage > 1 && (
         <NoticePagination pagination={pagination} onPageChange={onPageChange} />
       )}
 

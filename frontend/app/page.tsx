@@ -56,8 +56,8 @@ export default function Home() {
     }
   );
 
-  const notices = data?.data || [];
-  const pagination = data?.meta || { total: 0, page: 1, lastPage: 1 };
+  const notices = data?.data?.data || [];
+  const pagination = data?.data?.meta || { total: 0, page: 1, lastPage: 1 };
 
   // Calculate active and draft counts (This might need backend support for accurate total counts across pages)
   // For now, we rely on what the backend might return or just remove this if backend doesn't provide global counts separately.
