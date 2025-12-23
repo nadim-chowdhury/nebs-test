@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, or, ilike, sql } from 'drizzle-orm';
 import { DRIZZLE_ORM } from '../drizzle/drizzle.provider';
 import * as schema from '../drizzle/schema';
 import { CreateNoticeDto } from './dto/create-notice.dto';
@@ -44,11 +44,50 @@ export class NoticesService {
     return notice[0];
   }
 
-  async findAll() {
-    return this.db
-      .select()
-      .from(schema.notices)
-      .orderBy(desc(schema.notices.createdAt));
+  async findAll(params: {
+    page: number;
+    limit: number;
+    search?: string;
+    status?: string;
+    department?: string;
+  }) {
+    const { page, limit, search, status, department } = params;
+    const offset = (page - 1) * limit;
+
+    const where = and(
+      status ? eq(schema.notices.status, status) : undefined,
+      department ? eq(schema.notices.department, department) : undefined,
+      search
+        ? or(
+            ilike(schema.notices.title, `%${search}%`),
+            ilike(schema.notices.employeeName, `%${search}%`),
+          )
+        : undefined,
+    );
+
+    const [data, total] = await Promise.all([
+      this.db
+        .select()
+        .from(schema.notices)
+        .where(where)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(desc(schema.notices.createdAt)),
+      this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.notices)
+        .where(where)
+        .then((res) => Number(res[0].count)),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number) {

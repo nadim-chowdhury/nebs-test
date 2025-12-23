@@ -478,12 +478,12 @@ export default function CreateNoticeForm() {
         </div>
       </div>
 
-      {/* <ResponseModal
+      <ResponseModal
         open={open}
         onClose={() => setOpen(false)}
         title="Notice"
         description="Notice created successfully"
-      /> */}
+      />
     </div>
   );
 }

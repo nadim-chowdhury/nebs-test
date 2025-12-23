@@ -30,6 +30,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { useUpdateNoticeMutation } from "@/store/services/noticeService";
+
 // Define the Notice Interface
 interface Notice {
   id: string;
@@ -37,15 +40,40 @@ interface Notice {
   type: string;
   department: string;
   date: string;
-  // Make status optional or handle potential differences if backend returns slightly different strings
   status: "Published" | "Draft" | "Unpublished" | string;
+}
+
+interface PaginationMeta {
+  total: number;
+  page: number;
+  lastPage: number;
 }
 
 interface NoticeTableProps {
   notices: Notice[];
+  pagination: PaginationMeta;
+  onPageChange: (page: number) => void;
 }
 
-export default function NoticeTable({ notices }: NoticeTableProps) {
+export default function NoticeTable({
+  notices,
+  pagination,
+  onPageChange,
+}: NoticeTableProps) {
+  const [updateNotice] = useUpdateNoticeMutation();
+
+  const handleStatusToggle = async (id: string, currentStatus: string) => {
+    try {
+      const newStatus =
+        currentStatus === "Published" ? "Unpublished" : "Published";
+      await updateNotice({ id, status: newStatus }).unwrap();
+      toast.success(`Notice status updated to ${newStatus}`);
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error("Failed to update status");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-white overflow-hidden">
@@ -141,9 +169,17 @@ export default function NoticeTable({ notices }: NoticeTableProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem className="justify-between">
+                          <DropdownMenuItem
+                            className="justify-between"
+                            onSelect={(e) => e.preventDefault()}
+                          >
                             Published
-                            <Switch checked={notice.status === "Published"} />
+                            <Switch
+                              checked={notice.status === "Published"}
+                              onCheckedChange={() =>
+                                handleStatusToggle(notice.id, notice.status)
+                              }
+                            />
                           </DropdownMenuItem>
                           <DropdownMenuItem>View Details</DropdownMenuItem>
                           <DropdownMenuItem className="text-red-600">
@@ -165,41 +201,61 @@ export default function NoticeTable({ notices }: NoticeTableProps) {
           </TableBody>
         </Table>
       </div>
-      <NoticePagination />
+      {pagination && pagination.total > 0 && (
+        <NoticePagination pagination={pagination} onPageChange={onPageChange} />
+      )}
     </div>
   );
 }
 
-function NoticePagination() {
+function NoticePagination({
+  pagination,
+  onPageChange,
+}: {
+  pagination: PaginationMeta;
+  onPageChange: (page: number) => void;
+}) {
+  const { page, lastPage } = pagination;
+
   return (
     <Pagination className="justify-center pt-2">
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href="#" />
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink
+          <PaginationPrevious
             href="#"
-            isActive
-            className="bg-blue-50 text-blue-600 border-blue-200"
-          >
-            1
-          </PaginationLink>
+            onClick={(e) => {
+              e.preventDefault();
+              if (page > 1) onPageChange(page - 1);
+            }}
+            className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+          />
         </PaginationItem>
+        {Array.from({ length: lastPage }, (_, i) => i + 1).map((p) => (
+          <PaginationItem key={p}>
+            <PaginationLink
+              href="#"
+              isActive={p === page}
+              onClick={(e) => {
+                e.preventDefault();
+                onPageChange(p);
+              }}
+              className={
+                p === page ? "bg-blue-50 text-blue-600 border-blue-200" : ""
+              }
+            >
+              {p}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
         <PaginationItem>
-          <PaginationLink href="#">2</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">3</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">4</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">5</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationNext href="#" />
+          <PaginationNext
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              if (page < lastPage) onPageChange(page + 1);
+            }}
+            className={page >= lastPage ? "pointer-events-none opacity-50" : ""}
+          />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

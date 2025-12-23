@@ -11,9 +11,10 @@ export const noticeService = baseApiService.injectEndpoints({
       invalidatesTags: ["Notice"],
     }),
     getNotices: builder.query({
-      query: () => ({
+      query: (params) => ({
         url: "/notices",
         method: "GET",
+        params,
       }),
       providesTags: ["Notice"],
     }),

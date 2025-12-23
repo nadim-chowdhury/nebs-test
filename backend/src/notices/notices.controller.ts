@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { NoticesService } from './notices.service';
@@ -29,8 +30,20 @@ export class NoticesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all notices' })
-  findAll() {
-    return this.noticesService.findAll();
+  findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('department') department?: string,
+  ) {
+    return this.noticesService.findAll({
+      page: page ? +page : 1,
+      limit: limit ? +limit : 10,
+      search,
+      status,
+      department,
+    });
   }
 
   @Get(':id')
